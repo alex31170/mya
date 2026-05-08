@@ -94,8 +94,9 @@
       <main>
         <section class="wrap hero">
           ${isExpositionPage ? "" : `
-            <div>
+            <div class="hero-title">
               <h1>${escapeHtml(formatTitle(state.page.name))}</h1>
+              <img class="hero-title-image" src="${assetUrl("azer.png")}" alt="" loading="eager">
             </div>
           `}
           ${(showHeroImage || isVirtualGalleryPage) ? `
@@ -114,8 +115,9 @@
             </div>
           ` : ""}
           ${isExpositionPage ? `
-            <div>
+            <div class="hero-title">
               <h1>${escapeHtml(formatTitle(state.page.name))}</h1>
+              <img class="hero-title-image" src="${assetUrl("azer.png")}" alt="" loading="eager">
             </div>
           ` : ""}
         </section>
@@ -159,10 +161,21 @@
 
   function renderHeader() {
     const header = document.getElementById("site-header");
-    const image = state.data.header || "entete.png";
 
     header.innerHTML = `
-      <img class="header-image" src="${assetUrl(image)}" alt="" loading="eager">
+      <div class="header-brand">
+        <div class="header-signature">My A</div>
+        <div class="header-brand-visual">
+          <img class="header-brand-image" src="${assetUrl("azer.png")}" alt="" loading="eager">
+        </div>
+      </div>
+      <div class="header-line" aria-hidden="true"></div>
+      <div class="header-artist-row">
+        <div class="header-artist">
+          <div>Alexandra Muratory</div>
+          <div>Artiste Peintre</div>
+        </div>
+      </div>
     `;
   }
 
@@ -238,11 +251,12 @@
       return;
     }
 
-    const isCvPage = state.pagePath === "Parcours/CV";
+    const isCvPage = state.pagePath === "PARCOURS/CV";
     const gap = window.matchMedia("(max-width: 700px)").matches ? 16 : 22;
-    const targetHeight = (window.matchMedia("(max-width: 700px)").matches ? 180 : 260) * (isCvPage ? 3.5 : 1);
-    const minHeight = (window.matchMedia("(max-width: 700px)").matches ? 145 : 210) * (isCvPage ? 3.5 : 1);
-    const maxHeight = (window.matchMedia("(max-width: 700px)").matches ? 240 : 340) * (isCvPage ? 3.5 : 1);
+    const cvScale = isCvPage ? 2 : 1;
+    const targetHeight = (window.matchMedia("(max-width: 700px)").matches ? 180 : 260) * cvScale;
+    const minHeight = (window.matchMedia("(max-width: 700px)").matches ? 145 : 210) * cvScale;
+    const maxHeight = (window.matchMedia("(max-width: 700px)").matches ? 240 : 340) * cvScale;
     const availableWidth = container.clientWidth || container.getBoundingClientRect().width;
     const rows = [];
     let row = [];
@@ -258,7 +272,7 @@
       aspectSum += aspect;
 
       const widthAtTarget = aspectSum * targetHeight + gap * (row.length - 1);
-      if (isCvPage || row.length === 3 || widthAtTarget >= availableWidth * 0.92) {
+      if (!isCvPage && (row.length === 3 || widthAtTarget >= availableWidth * 0.92)) {
         rows.push(row);
         row = [];
         aspectSum = 0;
@@ -275,7 +289,7 @@
       const rowAspect = rowItems.reduce((sum, entry) => sum + entry.aspect, 0);
       const rowGap = gap * (rowItems.length - 1);
       const fittedHeight = (availableWidth - rowGap) / rowAspect;
-      const height = Math.max(minHeight, Math.min(maxHeight, fittedHeight));
+      const height = isCvPage ? fittedHeight : Math.max(minHeight, Math.min(maxHeight, fittedHeight));
       const rowElement = document.createElement("div");
 
       rowElement.className = "gallery-row";

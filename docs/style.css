@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@100;700&display=swap");
+@import url("https://fonts.cdnfonts.com/css/east-liberty-signature");
 
 :root {
   color-scheme: light;
@@ -24,6 +25,32 @@ body {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+body[data-path]:not([data-path=""]) {
+  --bg: #000000;
+  --surface: #000000;
+  --ink: #ffffff;
+  --muted: #d8d8d8;
+  --line: #ffffff;
+  background: #000000;
+  color: #ffffff;
+}
+
+body[data-path]:not([data-path=""]) .topbar,
+body[data-path]:not([data-path=""]) .hero-media,
+body[data-path]:not([data-path=""]) .hero-media img,
+body[data-path]:not([data-path=""]) .card,
+body[data-path]:not([data-path=""]) .card img,
+body[data-path]:not([data-path=""]) .gallery-item,
+body[data-path]:not([data-path=""]) .gallery-item img,
+body[data-path]:not([data-path=""]) .empty {
+  background: #000000;
+  color: #ffffff;
+}
+
+body[data-path]:not([data-path=""]) .topbar {
+  border-bottom-color: #ffffff;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -36,8 +63,63 @@ img {
 
 .site-header {
   display: flex;
+  flex-direction: column;
   justify-content: center;
+  align-items: stretch;
   background: #ffffff;
+}
+
+.header-brand {
+  width: min(1160px, calc(100% - 32px));
+  min-height: 5cm;
+  margin: 0 auto;
+  padding-top: 2cm;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.header-signature {
+  font-family: "East liberty signature", "Roboto", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 150px;
+  font-weight: 400;
+  line-height: 1;
+  text-align: left;
+}
+
+.header-brand-visual {
+  width: min(30.4vw, 336px);
+}
+
+.header-brand-image {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.header-line {
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+}
+
+.header-artist-row {
+  width: min(1160px, calc(100% - 32px));
+  margin: 0 auto;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.header-artist {
+  width: min(30.4vw, 336px);
+  margin-top: 8px;
+  font-family: "Roboto", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 30px;
+  font-weight: 100;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .header-image {
@@ -163,9 +245,20 @@ img {
   line-height: 0.98;
 }
 
-.hero > div:first-child {
+.hero-title {
+  position: relative;
   padding-bottom: 14px;
+  padding-right: min(18vw, 170px);
   border-bottom: 1px solid currentColor;
+}
+
+.hero-title-image {
+  position: absolute;
+  right: 0;
+  bottom: 8px;
+  width: min(16vw, 150px);
+  height: auto;
+  object-fit: contain;
 }
 
 .hero-media {
@@ -220,10 +313,12 @@ body[data-path="EXPOSITION/GALERIE VIRTUELLE"] .hero-media-link img {
 
 body[data-path="EXPOSITION/GALERIE VIRTUELLE"] .hero-media-link:first-child img {
   width: min(30.4vw, 336px);
+  transform: translateY(-10%);
 }
 
 body[data-path="EXPOSITION/GALERIE VIRTUELLE"] .hero-media-link:nth-child(2) img {
   width: min(35vw, 380px);
+  transform: translateY(0.2%);
 }
 
 body[data-path="EXPOSITION/GALERIE VIRTUELLE"] .hero-media-link span {
@@ -266,31 +361,40 @@ body[data-path="EXPOSITION/GALERIE VIRTUELLE"] .hero-media-link span {
   background: #ffffff;
 }
 
+body[data-path="EXPOSITION"] #children-grid .card[href$="GALERIE%20VIRTUELLE/"] img,
+body[data-path="EXPOSITION"] #children-grid .card[href$="GALERIE%20VIRTUELLE"] img {
+  transform: translateY(-2cm);
+}
+
 .card span {
   display: block;
   width: 100%;
+  max-width: 100%;
   min-height: 54px;
   padding: 14px 15px;
   font-family: "Roboto", Inter, ui-sans-serif, system-ui, sans-serif;
-  font-size: 2em;
+  font-size: 2.3rem;
   font-weight: 100;
   line-height: 1.25;
   text-align: center;
+  overflow-wrap: break-word;
 }
 
-body[data-path="Parcours"] #children-grid {
+body[data-path="PARCOURS"] #children-grid {
   display: flex;
   justify-content: center;
   gap: 18px;
 }
 
-body[data-path="Parcours"] #children-grid .card {
-  flex: 0 1 min(285px, calc((100% - 18px) / 2));
+body[data-path="PARCOURS"] #children-grid .card {
+  flex: 0 0 min(7cm, calc((100% - 18px) / 2));
 }
 
-body[data-path="Parcours"] #children-grid .card img {
-  height: 214px;
-  aspect-ratio: auto;
+body[data-path="PARCOURS"] #children-grid .card img {
+  width: min(7cm, 100%);
+  height: min(7cm, calc((100vw - 50px) / 2));
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
   object-fit: cover;
 }
 
@@ -432,7 +536,7 @@ body[data-path="Parcours"] #children-grid .card img {
   .card span {
     min-height: 48px;
     padding: 11px;
-    font-size: 0.94rem;
+    font-size: 1.4rem;
   }
 
   body[data-path="EXPOSITION/GALERIE VIRTUELLE"] .hero-media-link span {
@@ -444,6 +548,10 @@ body[data-path="Parcours"] #children-grid .card img {
   body[data-path="EXPOSITION/GALERIE VIRTUELLE"] .hero-media-link img,
   body[data-path="EXPOSITION/GALERIE VIRTUELLE"] .hero-media-link:nth-child(2) img {
     width: min(44vw, 280px);
+  }
+
+  body[data-path="EXPOSITION/GALERIE VIRTUELLE"] .hero-media-link:nth-child(2) img {
+    width: min(52.8vw, 336px);
   }
 
   body[data-path="EXPOSITION/GALERIE VIRTUELLE"] .hero-media-link:first-child img {
