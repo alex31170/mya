@@ -509,6 +509,10 @@ body.has-artwork-viewer {
   overflow: hidden;
 }
 
+body.has-contact-form {
+  overflow: hidden;
+}
+
 .artwork-contact-viewer {
   position: fixed;
   inset: 0;
@@ -570,6 +574,121 @@ body.has-artwork-viewer {
   width: clamp(42px, 7vw, 72px);
   height: auto;
   object-fit: contain;
+}
+
+.contact-form-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(0, 0, 0, 0.78);
+}
+
+.contact-form-dialog {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  width: min(92vw, 520px);
+  padding: 24px;
+  background: #ffffff;
+  color: #20201d;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+
+.contact-form-dialog h2 {
+  margin: 0;
+  font-family: "Roboto", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 2rem;
+  font-weight: 100;
+  line-height: 1;
+}
+
+.contact-form-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #d9d9d9;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #20201d;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.contact-form-context {
+  margin: 0;
+  color: #6f6c64;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  overflow-wrap: break-word;
+}
+
+.contact-form-dialog label {
+  display: grid;
+  gap: 7px;
+  font-size: 0.92rem;
+}
+
+.contact-form-dialog input,
+.contact-form-dialog textarea {
+  width: 100%;
+  border: 1px solid #d9d9d9;
+  border-radius: 0;
+  padding: 11px 12px;
+  color: #20201d;
+  font: inherit;
+  line-height: 1.35;
+  background: #ffffff;
+}
+
+.contact-form-dialog textarea {
+  resize: vertical;
+  min-height: 150px;
+}
+
+.contact-form-honey {
+  display: none;
+}
+
+.contact-form-status {
+  min-height: 1.3em;
+  margin: 0;
+  color: #6f6c64;
+  font-size: 0.9rem;
+}
+
+.contact-form-send {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  border: 0;
+  padding: 10px 16px;
+  background: #20201d;
+  color: #ffffff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.contact-form-send:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.contact-form-send svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .documents {

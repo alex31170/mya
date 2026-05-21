@@ -1,4 +1,7 @@
 (function () {
+  const CONTACT_EMAIL = "arcam.muratory@gmail.com";
+  const CONTACT_ENDPOINT = `https://formsubmit.co/ajax/${CONTACT_EMAIL}`;
+
   const state = {
     data: null,
     page: null,
@@ -8,6 +11,7 @@
   };
 
   document.addEventListener("DOMContentLoaded", init);
+  document.addEventListener("click", handleContactTriggerClick);
 
   async function init() {
     try {
@@ -60,7 +64,7 @@
           <div class="wrap">
             <div class="home-universe-heading">
               <h2 class="section-title home-universe-title">Découvrir mon univers</h2>
-              <a class="home-contact-link" href="mailto:arcam.muratory@gmail.com?subject=Contact%20depuis%20le%20site" onclick="window.location.href=this.href; return false;" aria-label="Envoyer un mail a Arcam Muratory">
+              <a class="home-contact-link" href="#" data-contact-trigger aria-label="Contacter Arcam Muratory">
                 <span>CONTACT</span>
                 <img class="home-universe-image" src="${assetUrl("azer.png")}" alt="" loading="lazy">
               </a>
@@ -256,16 +260,14 @@
     closeArtworkContactViewer();
 
     const overlay = document.createElement("div");
-    const mailHref = `mailto:arcam.muratory@gmail.com?subject=${encodeURIComponent("Contact depuis le site")}&body=${encodeURIComponent(`Bonjour,\n\nCette oeuvre m'interesse : ${imageUrl}\n\n`)}`;
     const safeImageUrl = escapeHtml(imageUrl);
-    const safeMailHref = escapeHtml(mailHref);
 
     overlay.className = "artwork-contact-viewer";
     overlay.innerHTML = `
       <div class="artwork-contact-dialog" role="dialog" aria-modal="true" aria-label="Oeuvre selectionnee">
         <button class="artwork-contact-close" type="button" aria-label="Fermer">&times;</button>
         <img class="artwork-contact-image" src="${safeImageUrl}" alt="" loading="eager">
-        <a class="artwork-contact-link" href="${safeMailHref}" data-mail-href="${safeMailHref}">
+        <a class="artwork-contact-link" href="#" data-contact-trigger data-artwork-url="${safeImageUrl}">
           <span>Cette oeuvre vous interesse, contactez moi</span>
           <img src="${assetUrl("azer.png")}" alt="" loading="eager">
         </a>
@@ -279,12 +281,6 @@
       ) {
         closeArtworkContactViewer();
         return;
-      }
-
-      const contactLink = event.target.closest(".artwork-contact-link");
-      if (contactLink) {
-        event.preventDefault();
-        window.location.href = contactLink.dataset.mailHref || contactLink.href;
       }
     });
 
@@ -307,6 +303,119 @@
     if (event.key === "Escape") {
       closeArtworkContactViewer();
     }
+  }
+
+  function openContactForm(artworkUrl = "") {
+    closeContactForm();
+
+    const overlay = document.createElement("div");
+    const safeArtworkUrl = escapeHtml(artworkUrl);
+    const artworkText = artworkUrl
+      ? `<p class="contact-form-context">Oeuvre : ${safeArtworkUrl}</p>`
+      : "";
+
+    overlay.className = "contact-form-viewer";
+    overlay.innerHTML = `
+      <form class="contact-form-dialog" aria-label="Formulaire de contact">
+        <button class="contact-form-close" type="button" aria-label="Fermer">&times;</button>
+        <h2>Contact</h2>
+        ${artworkText}
+        <label>
+          <span>Votre adresse mail</span>
+          <input type="email" name="email" autocomplete="email" required>
+        </label>
+        <label>
+          <span>Votre message</span>
+          <textarea name="message" rows="7" required></textarea>
+        </label>
+        <input type="hidden" name="_subject" value="Contact depuis le site">
+        <input type="hidden" name="oeuvre" value="${safeArtworkUrl}">
+        <input type="text" name="_honey" class="contact-form-honey" tabindex="-1" autocomplete="off">
+        <p class="contact-form-status" role="status"></p>
+        <button class="contact-form-send" type="submit">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M22 2 11 13"></path>
+            <path d="m22 2-7 20-4-9-9-4 20-7Z"></path>
+          </svg>
+          <span>Send</span>
+        </button>
+      </form>
+    `;
+
+    overlay.addEventListener("click", (event) => {
+      if (
+        event.target === overlay ||
+        event.target.closest(".contact-form-close")
+      ) {
+        closeContactForm();
+      }
+    });
+
+    overlay.querySelector("form").addEventListener("submit", submitContactForm);
+    document.body.appendChild(overlay);
+    document.body.classList.add("has-contact-form");
+    document.addEventListener("keydown", handleContactFormKeydown);
+    overlay.querySelector("input[name='email']").focus();
+  }
+
+  async function submitContactForm(event) {
+    event.preventDefault();
+
+    const form = event.currentTarget;
+    const status = form.querySelector(".contact-form-status");
+    const button = form.querySelector(".contact-form-send");
+    const payload = Object.fromEntries(new FormData(form).entries());
+
+    status.textContent = "Envoi en cours...";
+    button.disabled = true;
+
+    try {
+      const response = await fetch(CONTACT_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error("Message non envoye");
+      }
+
+      form.reset();
+      status.textContent = "Message envoye. Merci.";
+    } catch (error) {
+      status.textContent = "Impossible d'envoyer le message pour le moment.";
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  function closeContactForm() {
+    const viewer = document.querySelector(".contact-form-viewer");
+    if (viewer) {
+      viewer.remove();
+    }
+
+    document.body.classList.remove("has-contact-form");
+    document.removeEventListener("keydown", handleContactFormKeydown);
+  }
+
+  function handleContactFormKeydown(event) {
+    if (event.key === "Escape") {
+      closeContactForm();
+    }
+  }
+
+  function handleContactTriggerClick(event) {
+    const trigger = event.target.closest("[data-contact-trigger]");
+    if (!trigger) {
+      return;
+    }
+
+    event.preventDefault();
+    openContactForm(trigger.dataset.artworkUrl || "");
   }
 
   function renderDocuments(container, documents) {
