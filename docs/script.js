@@ -1,6 +1,7 @@
 (function () {
-  const CONTACT_EMAIL = "arcam.muratory@gmail.com";
-  const CONTACT_ENDPOINT = `https://formsubmit.co/ajax/${CONTACT_EMAIL}`;
+  const CONTACT_ACCESS_KEY = "d8bcc94f-c01e-46af-9181-cd3ebbb3eeca";
+  const CONTACT_ENDPOINT = "https://api.web3forms.com/submit";
+  const ARTIST_EMAIL = "arcam.muratory@gmail.com";
 
   const state = {
     data: null,
@@ -73,6 +74,14 @@
           </div>
         </section>
       </main>
+      <footer class="home-footer">
+        <a href="https://www.facebook.com/1973muratory" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+          <img src="${assetUrl("face.png")}" alt="Facebook" loading="lazy">
+        </a>
+        <a href="https://www.instagram.com/alexandramuratory/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+          <img src="${assetUrl("insta.png")}" alt="Instagram" loading="lazy">
+        </a>
+      </footer>
     `;
 
     renderHeader();
@@ -87,10 +96,10 @@
     const childIllustrations = new Set(children.map((child) => child.image).filter(Boolean));
     const isVirtualGalleryPage = state.pagePath === "EXPOSITION/GALERIE VIRTUELLE";
     const isExpositionPage = state.pagePath === "EXPOSITION";
-    const heroImagePath = isExpositionPage ? "EXPOSITION/Expo en cours .jpg" : state.page.image;
+    const heroImagePath = isExpositionPage ? "EXPOSITION/2026/DAM et MyA affiche EXPO(1).jpg" : state.page.image;
     const virtualGalleryChild = children.find((child) => child.path === "EXPOSITION/GALERIE VIRTUELLE/Je m'expose chez vous");
     const displayChildren = isVirtualGalleryPage ? [] : orderExpositionChildren(children, isExpositionPage);
-    const showHeroImage = heroImagePath && !isVirtualGalleryPage && !isFolderIllustration(heroImagePath, state.page.name);
+    const showHeroImage = heroImagePath && !isVirtualGalleryPage && (isExpositionPage || !isFolderIllustration(heroImagePath, state.page.name));
     const galleryImages = isVirtualGalleryPage ? [] : (state.page.gallery || []).filter((image) => {
       return image !== state.page.image && !childIllustrations.has(image);
     });
@@ -135,6 +144,12 @@
           <section class="section">
             <div class="wrap">
               <div class="grid" id="children-grid"></div>
+              ${state.pagePath === "PARCOURS" ? `
+                <a class="folder-contact-link" href="#" data-contact-trigger aria-label="Contacter Arcam Muratory">
+                  <span>Contactez moi</span>
+                  <img src="${assetUrl("azer.png")}" alt="" loading="lazy">
+                </a>
+              ` : ""}
             </div>
           </section>
         ` : ""}
@@ -162,6 +177,7 @@
     }
     if (gallery) {
       renderGallery(gallery, galleryImages);
+      openArtworkFromUrl();
     }
     const documentsContainer = document.getElementById("documents");
     if (documentsContainer) {
@@ -231,7 +247,7 @@
     }
 
     container.innerHTML = images.map((image) => `
-      <a class="gallery-item" href="${assetUrl(image)}">
+      <a class="gallery-item" href="${assetUrl(image)}" data-artwork-path="${escapeHtml(image)}">
         <img src="${assetUrl(image)}" alt="" loading="lazy">
       </a>
     `).join("");
@@ -252,22 +268,23 @@
       }
 
       event.preventDefault();
-      openArtworkContactViewer(link.href);
+      openArtworkContactViewer(link.href, link.dataset.artworkPath || "");
     });
   }
 
-  function openArtworkContactViewer(imageUrl) {
+  function openArtworkContactViewer(imageUrl, artworkPath = "") {
     closeArtworkContactViewer();
 
     const overlay = document.createElement("div");
     const safeImageUrl = escapeHtml(imageUrl);
+    const safeArtworkPath = escapeHtml(artworkPath);
 
     overlay.className = "artwork-contact-viewer";
     overlay.innerHTML = `
       <div class="artwork-contact-dialog" role="dialog" aria-modal="true" aria-label="Oeuvre selectionnee">
         <button class="artwork-contact-close" type="button" aria-label="Fermer">&times;</button>
         <img class="artwork-contact-image" src="${safeImageUrl}" alt="" loading="eager">
-        <a class="artwork-contact-link" href="#" data-contact-trigger data-artwork-url="${safeImageUrl}">
+        <a class="artwork-contact-link" href="#" data-contact-trigger data-artwork-url="${safeImageUrl}" data-artwork-path="${safeArtworkPath}">
           <span>Cette oeuvre vous interesse, contactez moi</span>
           <img src="${assetUrl("azer.png")}" alt="" loading="eager">
         </a>
@@ -305,13 +322,19 @@
     }
   }
 
-  function openContactForm(artworkUrl = "") {
+  function openContactForm(artworkUrl = "", artworkPath = "") {
     closeContactForm();
 
     const overlay = document.createElement("div");
+    const artworkLink = artworkPath ? getArtworkPageLink(artworkPath) : artworkUrl;
     const safeArtworkUrl = escapeHtml(artworkUrl);
+    const safeArtworkLink = escapeHtml(artworkLink);
+    const subject = artworkLink ? "Contact pour une oeuvre" : "Contact depuis le site";
+    const defaultMessage = artworkLink
+      ? "Bonjour Alexandra,\n\nJ’ai découvert cette œuvre sur votre site et elle a particulièrement retenu mon attention. Je souhaiterais en savoir un peu plus à son sujet (dimensions, technique, histoire de la création, disponibilité éventuelle, etc.)."
+      : "";
     const artworkText = artworkUrl
-      ? `<p class="contact-form-context">Oeuvre : ${safeArtworkUrl}</p>`
+      ? `<img class="contact-form-artwork" src="${safeArtworkUrl}" alt="Oeuvre selectionnee" loading="eager">`
       : "";
 
     overlay.className = "contact-form-viewer";
@@ -326,11 +349,23 @@
         </label>
         <label>
           <span>Votre message</span>
-          <textarea name="message" rows="7" required></textarea>
+          <textarea name="message" rows="7" required>${escapeHtml(defaultMessage)}</textarea>
         </label>
-        <input type="hidden" name="_subject" value="Contact depuis le site">
-        <input type="hidden" name="oeuvre" value="${safeArtworkUrl}">
-        <input type="text" name="_honey" class="contact-form-honey" tabindex="-1" autocomplete="off">
+        <div class="contact-copy-email">
+          <span>${ARTIST_EMAIL}</span>
+          <button type="button" data-copy-email aria-label="Copier l'adresse mail">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+          </button>
+        </div>
+        <input type="hidden" name="access_key" value="${CONTACT_ACCESS_KEY}">
+        <input type="hidden" name="subject" value="${escapeHtml(subject)}">
+        <input type="hidden" name="from_name" value="Site Arcam Muratory">
+        <input type="hidden" name="Lien vers l'oeuvre" value="${safeArtworkLink}">
+        <input type="hidden" name="Email de contact de l'artiste" value="${ARTIST_EMAIL}">
+        <input type="hidden" name="Artistiquement" value="Alexandra Muratory">
         <p class="contact-form-status" role="status"></p>
         <button class="contact-form-send" type="submit">
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -348,6 +383,11 @@
         event.target.closest(".contact-form-close")
       ) {
         closeContactForm();
+        return;
+      }
+
+      if (event.target.closest("[data-copy-email]")) {
+        copyArtistEmail(overlay);
       }
     });
 
@@ -379,14 +419,20 @@
         body: JSON.stringify(payload)
       });
 
+      const result = await response.json().catch(() => null);
       if (!response.ok) {
-        throw new Error("Message non envoye");
+        throw new Error((result && result.message) || "Message non envoye");
+      }
+
+      if (result && result.success === false) {
+        throw new Error(result.message || "Message non envoye");
       }
 
       form.reset();
       status.textContent = "Message envoye. Merci.";
+      window.setTimeout(closeContactForm, 700);
     } catch (error) {
-      status.textContent = "Impossible d'envoyer le message pour le moment.";
+      status.textContent = error.message || "Impossible d'envoyer le message pour le moment.";
     } finally {
       button.disabled = false;
     }
@@ -408,6 +454,30 @@
     }
   }
 
+  async function copyArtistEmail(container) {
+    const status = container.querySelector(".contact-form-status");
+
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(ARTIST_EMAIL);
+      } else {
+        const field = document.createElement("textarea");
+        field.value = ARTIST_EMAIL;
+        field.setAttribute("readonly", "");
+        field.style.position = "fixed";
+        field.style.left = "-9999px";
+        document.body.appendChild(field);
+        field.select();
+        document.execCommand("copy");
+        field.remove();
+      }
+
+      status.textContent = "Adresse mail copiee.";
+    } catch (error) {
+      status.textContent = "Impossible de copier l'adresse.";
+    }
+  }
+
   function handleContactTriggerClick(event) {
     const trigger = event.target.closest("[data-contact-trigger]");
     if (!trigger) {
@@ -415,7 +485,26 @@
     }
 
     event.preventDefault();
-    openContactForm(trigger.dataset.artworkUrl || "");
+    openContactForm(trigger.dataset.artworkUrl || "", trigger.dataset.artworkPath || "");
+  }
+
+  function getArtworkPageLink(artworkPath) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("artwork", artworkPath);
+    return url.href;
+  }
+
+  function openArtworkFromUrl() {
+    if (!isPaintingGalleryPage()) {
+      return;
+    }
+
+    const artworkPath = new URLSearchParams(window.location.search).get("artwork");
+    if (!artworkPath) {
+      return;
+    }
+
+    openArtworkContactViewer(assetUrl(artworkPath), artworkPath);
   }
 
   function renderDocuments(container, documents) {
@@ -651,7 +740,12 @@
 
   function collectImages(node, trail = []) {
     const nodePath = normalizePath(node.path || "");
-    if (nodePath === "PARCOURS/CV" || nodePath === "PARCOURS/Publications") {
+    if (
+      nodePath === "PARCOURS/CV" ||
+      nodePath === "PARCOURS/Publications" ||
+      nodePath === "EXPOSITION/2024 & avant" ||
+      nodePath === "EXPOSITION/2025"
+    ) {
       return [];
     }
 

@@ -179,6 +179,26 @@ img {
   object-fit: contain;
 }
 
+.home-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 0 34px;
+}
+
+.home-footer a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-footer img {
+  width: clamp(30px, 4vw, 42px);
+  height: auto;
+  object-fit: contain;
+}
+
 .lead {
   max-width: 760px;
   margin: 0 0 22px;
@@ -424,6 +444,29 @@ body[data-path="PARCOURS"] #children-grid .card img {
   object-fit: cover;
 }
 
+.folder-contact-link {
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 10px;
+  margin: 34px auto 0;
+  color: inherit;
+  font-family: "Roboto", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1.1rem, 2vw, 1.55rem);
+  font-weight: 100;
+  line-height: 1;
+}
+
+.folder-contact-link img {
+  width: clamp(54px, 8vw, 88px);
+  height: auto;
+  object-fit: contain;
+}
+
+body[data-path="PARCOURS"] .folder-contact-link {
+  display: flex;
+}
+
 body[data-path="PEINTURE"] #children-grid .card img {
   width: min(7cm, 100%);
   height: min(7cm, calc((100vw - 50px) / 2));
@@ -628,6 +671,15 @@ body.has-contact-form {
   overflow-wrap: break-word;
 }
 
+.contact-form-artwork {
+  justify-self: center;
+  max-width: min(42vw, 150px);
+  max-height: 120px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
 .contact-form-dialog label {
   display: grid;
   gap: 7px;
@@ -651,8 +703,43 @@ body.has-contact-form {
   min-height: 150px;
 }
 
-.contact-form-honey {
-  display: none;
+.contact-copy-email {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid #d9d9d9;
+  padding: 9px 10px;
+  color: #20201d;
+  font-size: 0.92rem;
+}
+
+.contact-copy-email span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.contact-copy-email button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border: 0;
+  background: #20201d;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.contact-copy-email svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .contact-form-status {
