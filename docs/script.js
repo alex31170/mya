@@ -58,7 +58,13 @@
         </section>
         <section class="section">
           <div class="wrap">
-            <h2 class="section-title home-universe-title">Découvrir mon univers</h2>
+            <div class="home-universe-heading">
+              <h2 class="section-title home-universe-title">Découvrir mon univers</h2>
+              <a class="home-contact-link" href="mailto:arcam.muratory@gmail.com?subject=Contact%20depuis%20le%20site" onclick="window.location.href=this.href; return false;" aria-label="Envoyer un mail a Arcam Muratory">
+                <span>CONTACT</span>
+                <img class="home-universe-image" src="${assetUrl("azer.png")}" alt="" loading="lazy">
+              </a>
+            </div>
             <div class="grid" id="children-grid"></div>
           </div>
         </section>
@@ -226,7 +232,81 @@
       </a>
     `).join("");
 
+    setupArtworkContactViewer(container);
     setupJustifiedGallery(container);
+  }
+
+  function setupArtworkContactViewer(container) {
+    if (!isPaintingGalleryPage()) {
+      return;
+    }
+
+    container.addEventListener("click", (event) => {
+      const link = event.target.closest(".gallery-item");
+      if (!link) {
+        return;
+      }
+
+      event.preventDefault();
+      openArtworkContactViewer(link.href);
+    });
+  }
+
+  function openArtworkContactViewer(imageUrl) {
+    closeArtworkContactViewer();
+
+    const overlay = document.createElement("div");
+    const mailHref = `mailto:arcam.muratory@gmail.com?subject=${encodeURIComponent("Contact depuis le site")}&body=${encodeURIComponent(`Bonjour,\n\nCette oeuvre m'interesse : ${imageUrl}\n\n`)}`;
+    const safeImageUrl = escapeHtml(imageUrl);
+    const safeMailHref = escapeHtml(mailHref);
+
+    overlay.className = "artwork-contact-viewer";
+    overlay.innerHTML = `
+      <div class="artwork-contact-dialog" role="dialog" aria-modal="true" aria-label="Oeuvre selectionnee">
+        <button class="artwork-contact-close" type="button" aria-label="Fermer">&times;</button>
+        <img class="artwork-contact-image" src="${safeImageUrl}" alt="" loading="eager">
+        <a class="artwork-contact-link" href="${safeMailHref}" data-mail-href="${safeMailHref}">
+          <span>Cette oeuvre vous interesse, contactez moi</span>
+          <img src="${assetUrl("azer.png")}" alt="" loading="eager">
+        </a>
+      </div>
+    `;
+
+    overlay.addEventListener("click", (event) => {
+      if (
+        event.target === overlay ||
+        event.target.closest(".artwork-contact-close")
+      ) {
+        closeArtworkContactViewer();
+        return;
+      }
+
+      const contactLink = event.target.closest(".artwork-contact-link");
+      if (contactLink) {
+        event.preventDefault();
+        window.location.href = contactLink.dataset.mailHref || contactLink.href;
+      }
+    });
+
+    document.body.appendChild(overlay);
+    document.body.classList.add("has-artwork-viewer");
+    document.addEventListener("keydown", handleArtworkViewerKeydown);
+  }
+
+  function closeArtworkContactViewer() {
+    const viewer = document.querySelector(".artwork-contact-viewer");
+    if (viewer) {
+      viewer.remove();
+    }
+
+    document.body.classList.remove("has-artwork-viewer");
+    document.removeEventListener("keydown", handleArtworkViewerKeydown);
+  }
+
+  function handleArtworkViewerKeydown(event) {
+    if (event.key === "Escape") {
+      closeArtworkContactViewer();
+    }
   }
 
   function renderDocuments(container, documents) {
@@ -558,6 +638,14 @@
       || path.startsWith("peinture/")
       || path === "sculpture"
       || path === "exposition/galerie virtuelle/je m'expose chez vous";
+  }
+
+  function isPaintingGalleryPage() {
+    return [
+      "peinture/inspiration japon",
+      "peinture/inspiration mer",
+      "peinture/inspiration voyage"
+    ].includes(state.pagePath.toLocaleLowerCase("fr-FR"));
   }
 
   function shuffle(items) {
