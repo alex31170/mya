@@ -352,7 +352,7 @@ body[data-path="EXPOSITION/GALERIE VIRTUELLE"] .hero-media {
 body[data-path="EXPOSITION/GALERIE VIRTUELLE"] .hero-media-link img {
   width: min(38vw, 420px);
   aspect-ratio: 1 / 1;
-  border-radius: 50%;
+  border-radius: 0;
   object-fit: cover;
   align-self: end;
 }
@@ -471,8 +471,8 @@ body[data-path="PEINTURE"] #children-grid .card img {
   width: min(7cm, 100%);
   height: min(7cm, calc((100vw - 50px) / 2));
   aspect-ratio: 1 / 1;
-  margin: 0 auto;
-  border-radius: 50%;
+  margin: 0;
+  border-radius: 0;
   object-fit: cover;
 }
 
@@ -480,7 +480,7 @@ body[data-path="PEINTURE"] #children-grid .card {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 4px;
 }
 
 body[data-path="PEINTURE"] #children-grid .card span {
@@ -490,7 +490,7 @@ body[data-path="PEINTURE"] #children-grid .card span {
   padding: 0;
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-  text-align: center;
+  text-align: start;
   white-space: nowrap;
 }
 
@@ -902,6 +902,19 @@ body.has-contact-form {
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
+  }
+
+  body[data-path="PARCOURS"] #children-grid {
+    gap: 10px;
+  }
+
+  body[data-path="PARCOURS"] #children-grid .card {
+    flex-basis: min(43vw, 7cm);
+  }
+
+  body[data-path="PARCOURS"] #children-grid .card img {
+    width: min(43vw, 7cm);
+    height: min(43vw, 7cm);
   }
 
   body[data-path="PEINTURE"] #children-grid {

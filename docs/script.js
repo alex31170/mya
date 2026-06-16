@@ -254,6 +254,182 @@
 
     setupArtworkContactViewer(container);
     setupJustifiedGallery(container);
+
+    if (isPaintingGalleryPage()) {
+      sortGalleryByColorTheme(container);
+    }
+  }
+
+  async function sortGalleryByColorTheme(container) {
+    const items = Array.from(container.querySelectorAll(".gallery-item"));
+    if (items.length < 2) {
+      return;
+    }
+
+    try {
+      const analyzedItems = await Promise.all(items.map(async (item, index) => {
+        try {
+          return {
+            item,
+            index,
+            colorTheme: await analyzeGalleryItemColor(item)
+          };
+        } catch (error) {
+          return {
+            item,
+            index,
+            colorTheme: { family: 9, hue: 0, lightness: 0.5 }
+          };
+        }
+      }));
+
+      analyzedItems.sort((first, second) => {
+        return first.colorTheme.family - second.colorTheme.family
+          || first.colorTheme.lightness - second.colorTheme.lightness
+          || first.colorTheme.hue - second.colorTheme.hue
+          || first.index - second.index;
+      });
+
+      const fragment = document.createDocumentFragment();
+      analyzedItems.forEach(({ item }) => fragment.appendChild(item));
+      container.replaceChildren(fragment);
+      layoutJustifiedGallery(container);
+    } catch (error) {
+      layoutJustifiedGallery(container);
+    }
+  }
+
+  async function analyzeGalleryItemColor(item) {
+    const image = item.querySelector("img");
+    if (!image) {
+      return { family: 9, hue: 0, lightness: 0.5 };
+    }
+
+    const source = await loadImageForAnalysis(image.currentSrc || image.src);
+
+    const maxSize = 32;
+    const ratio = Math.min(maxSize / source.naturalWidth, maxSize / source.naturalHeight, 1);
+    const width = Math.max(1, Math.round(source.naturalWidth * ratio));
+    const height = Math.max(1, Math.round(source.naturalHeight * ratio));
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    if (!context) {
+      return { family: 9, hue: 0, lightness: 0.5 };
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+    context.drawImage(source, 0, 0, width, height);
+
+    const pixels = context.getImageData(0, 0, width, height).data;
+    let x = 0;
+    let y = 0;
+    let weightTotal = 0;
+    let lightTotal = 0;
+    let chromaticWeight = 0;
+    let neutralWeight = 0;
+
+    for (let index = 0; index < pixels.length; index += 4) {
+      const alpha = pixels[index + 3] / 255;
+      if (alpha < 0.1) {
+        continue;
+      }
+
+      const color = rgbToHsl(pixels[index], pixels[index + 1], pixels[index + 2]);
+      const weight = alpha * (0.25 + color.saturation);
+
+      lightTotal += color.lightness * weight;
+      weightTotal += weight;
+
+      if (color.saturation < 0.18 || color.lightness > 0.92) {
+        neutralWeight += weight;
+        continue;
+      }
+
+      const chromatic = weight * color.saturation;
+      const angle = color.hue * Math.PI / 180;
+      x += Math.cos(angle) * chromatic;
+      y += Math.sin(angle) * chromatic;
+      chromaticWeight += chromatic;
+    }
+
+    const lightness = weightTotal ? lightTotal / weightTotal : 0.5;
+    if (!chromaticWeight || chromaticWeight < neutralWeight * 0.35) {
+      return { family: lightness < 0.32 ? 8 : 9, hue: 0, lightness };
+    }
+
+    const hue = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+    return {
+      family: colorFamilyFromHue(hue),
+      hue,
+      lightness
+    };
+  }
+
+  function loadImageForAnalysis(src) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+
+      image.addEventListener("load", () => resolve(image), { once: true });
+      image.addEventListener("error", reject, { once: true });
+      image.src = src;
+    });
+  }
+
+  function colorFamilyFromHue(hue) {
+    if (hue < 18 || hue >= 345) {
+      return 0;
+    }
+    if (hue < 45) {
+      return 1;
+    }
+    if (hue < 70) {
+      return 2;
+    }
+    if (hue < 165) {
+      return 3;
+    }
+    if (hue < 205) {
+      return 4;
+    }
+    if (hue < 255) {
+      return 5;
+    }
+    if (hue < 300) {
+      return 6;
+    }
+    return 7;
+  }
+
+  function rgbToHsl(red, green, blue) {
+    const r = red / 255;
+    const g = green / 255;
+    const b = blue / 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const lightness = (max + min) / 2;
+    const delta = max - min;
+
+    if (!delta) {
+      return { hue: 0, saturation: 0, lightness };
+    }
+
+    const saturation = delta / (1 - Math.abs(2 * lightness - 1));
+    let hue = 0;
+
+    if (max === r) {
+      hue = 60 * (((g - b) / delta) % 6);
+    } else if (max === g) {
+      hue = 60 * ((b - r) / delta + 2);
+    } else {
+      hue = 60 * ((r - g) / delta + 4);
+    }
+
+    return {
+      hue: (hue + 360) % 360,
+      saturation,
+      lightness
+    };
   }
 
   function setupArtworkContactViewer(container) {
